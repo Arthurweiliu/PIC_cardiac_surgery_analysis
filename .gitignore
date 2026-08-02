@@ -1,0 +1,18 @@
+# Manuscript is intentionally NOT tracked in this repo (not uploaded to GitHub)
+manuscript/
+cover_letter.md
+GITHUB_INSTRUCTIONS.md
+
+# heavy / generated
+node_modules/
+R_lib/
+_stale/
+*.rds.bak
+
+# secrets
+.env
+*.cookies.txt
+
+# OS / editor
+Thumbs.db
+Desktop.ini
