@@ -6,6 +6,9 @@ suppressPackageStartupMessages({
 d <- readRDS('F:/openclaw_workspace/dataset/PIC_cardiac_final.rds')
 
 # === Prepare data ===
+# Model specification matches Table 2: high-risk complex, CoA/IAA, valve/RVOT,
+# and Other groups excluded (collinearity with neonatal age / limited events);
+# Other Combined = VSD+ASD Repair, VSD+Combined, ASD+PDA. Analytic sample = 1,910 (9 deaths).
 d_model <- d %>%
   mutate(
     age_cat = case_when(
@@ -19,13 +22,13 @@ d_model <- d %>%
       surg_group_main == 'ASD Repair alone' ~ 'ASD alone',
       surg_group_main == 'PDA Closure alone' ~ 'PDA alone',
       surg_group_main == 'TOF Repair' ~ 'TOF Repair',
-      surg_group_main == 'Complex Neonatal/Other' ~ 'High-Risk Complex', # excluded from model
-      TRUE ~ 'Other Combined'
-    ),
-    model_group = factor(model_group),
-    model_group = relevel(model_group, ref = 'VSD alone'),
-    male = ifelse(gender == 'Male', 1, 0)
-  )
+      surg_group_main %in% c('VSD+ASD Repair', 'VSD + Combined', 'ASD+PDA') ~ 'Other Combined',
+      TRUE ~ 'EXCLUDED' # High-Risk Complex, CoA/IAA+Combined, Valve, RVOT, Other
+    )) %>%
+  filter(model_group != 'EXCLUDED') %>%
+  mutate(model_group = factor(model_group),
+         model_group = relevel(model_group, ref = 'VSD alone'),
+         male = ifelse(gender == 'Male', 1, 0))
 
 # === Primary model: age categorical + procedure ===
 fit1 <- logistf(death ~ age_cat + model_group, data = d_model)

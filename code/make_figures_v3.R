@@ -135,9 +135,11 @@ ggsave(file.path(outdir, 'Fig2_Mortality_by_Age.tiff'), fig2, width = 6.5, heigh
 cat('Figure 2 saved.\n')
 
 # ---- Figure S1: naive vs hierarchical ----
-dcsv <- read.csv('F:/openclaw_workspace/dataset/PIC_cardiac_improved.csv', stringsAsFactors = FALSE)
-if (!'orig_class' %in% names(dcsv)) {
-  dcsv <- dcsv %>% mutate(orig_class = case_when(
+# Naive classification = simple keyword-based single-procedure assignment (Rule A,
+# identical to the method described in the manuscript and used for Table S2):
+# VSD-only -> ASD-only -> VSD+ASD -> PDA -> TOF -> PulmValve -> Other, on all_names.
+d <- readRDS('F:/openclaw_workspace/dataset/PIC_cardiac_final.rds')
+dcsv <- d %>% mutate(orig_class = case_when(
     grepl('VSD', all_names) & !grepl('ASD|PDA', all_names) ~ 'VSD Repair alone',
     grepl('ASD', all_names) & !grepl('VSD|PDA', all_names) ~ 'ASD Repair alone',
     grepl('VSD', all_names) & grepl('ASD', all_names) ~ 'VSD+ASD Repair',
@@ -145,7 +147,6 @@ if (!'orig_class' %in% names(dcsv)) {
     grepl('tetralogy|TOF', all_names, ignore.case = TRUE) ~ 'TOF Repair',
     grepl('pulmonary stenosis', all_names, ignore.case = TRUE) ~ 'Pulm Valve Intervention',
     TRUE ~ 'Other Cardiac'))
-}
 naive_stats <- dcsv %>% group_by(orig_class) %>%
   summarise(n = n(), deaths = sum(death, na.rm = TRUE), .groups = 'drop') %>%
   mutate(mort = deaths / n)
